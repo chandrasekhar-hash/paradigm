@@ -1,0 +1,10 @@
+{
+  "description": "Explore PARADIGM, a student-focused innovation platform in Berhampur connecting learners, researchers, and creators with programs, announcements, and registration.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
