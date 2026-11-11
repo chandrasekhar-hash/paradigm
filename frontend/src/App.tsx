@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { useCinematicMotion } from "./hooks/useCinematicMotion";
+import RegistrationModal from "./components/RegistrationModal";
 
 const HeroCanvas = lazy(() =>
   import("./components/ExperienceCanvas").then((module) => ({ default: module.HeroCanvas })),
@@ -65,9 +66,9 @@ function Navigation() {
             </a>
           ))}
         </nav>
-        <a className="nav-cta" href="#register">
+        <button className="nav-cta" type="button" onClick={() => setRegOpen(true)}>
           REGISTER NOW <Arrow diagonal />
-        </a>
+        </button>
         <button
           className="menu-toggle"
           type="button"
@@ -90,9 +91,9 @@ function Navigation() {
             </a>
           ))}
         </nav>
-        <a className="button button-lime mobile-register" href="#register" onClick={close}>
+        <button className="button button-lime mobile-register" type="button" onClick={() => { setRegOpen(true); close(); }}>
           REGISTER FOR PARADIGM <Arrow />
-        </a>
+        </button>
         <div className="mobile-location mono">BERHAMPUR / ODISHA / INDIA</div>
       </div>
     </>
@@ -271,84 +272,70 @@ const programs = [
   ],
 ];
 
-type NoticeState = "published" | "loading" | "empty" | "error";
+interface Notice {
+  id: number;
+  title: string;
+  tag: string;
+  body: string;
+  posted_at: string;
+}
 
 function NoticeBoard() {
-  const [state, setState] = useState<NoticeState>("empty");
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
+
+  const fetchNotices = () => {
+    setLoading(true);
+    setFetchError(false);
+    fetch("/api/notices")
+      .then((r) => { if (!r.ok) throw new Error("failed"); return r.json(); })
+      .then((data: Notice[]) => { setNotices(data); setLoading(false); })
+      .catch(() => { setFetchError(true); setLoading(false); });
+  };
+
+  useEffect(() => { fetchNotices(); }, []);
+
   return (
     <div className="notice-board">
-      <div className="notice-toolbar">
-        <span className="mono">API DISPLAY STATES</span>
-        <div className="state-tabs" role="group" aria-label="Preview notice states">
-          {(["empty", "loading", "published", "error"] as NoticeState[]).map((item) => (
-            <button
-              type="button"
-              className={state === item ? "active" : ""}
-              onClick={() => setState(item)}
-              key={item}
-            >
-              {item}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="notice-content" aria-live="polite" key={state}>
-        {state === "loading" && (
+      <div className="notice-content" aria-live="polite">
+        {loading && (
           <div className="state-message loading-state">
-            <div className="loader-lines">
-              <i />
-              <i />
-              <i />
-            </div>
+            <div className="loader-lines"><i /><i /><i /></div>
             <span className="mono">CONNECTING TO NOTICE SOURCE</span>
             <h3>LOADING ANNOUNCEMENTS</h3>
           </div>
         )}
-        {state === "empty" && (
-          <div className="state-message">
-            <span className="state-code mono">00 / EMPTY</span>
-            <h3>
-              NO ANNOUNCEMENTS <em>YET.</em>
-            </h3>
-            <p>Stay tuned for updates from PARADIGM.</p>
-          </div>
-        )}
-        {state === "error" && (
+        {!loading && fetchError && (
           <div className="state-message">
             <span className="state-code mono">ERR / SOURCE UNAVAILABLE</span>
-            <h3>NOTICES COULDN’T LOAD.</h3>
+            <h3>NOTICES COULDN&rsquo;T LOAD.</h3>
             <p>Please try again when the external source is available.</p>
-            <button
-              className="button button-outline"
-              type="button"
-              onClick={() => setState("loading")}
-            >
+            <button className="button button-outline" type="button" onClick={fetchNotices}>
               TRY AGAIN <Arrow />
             </button>
           </div>
         )}
-        {state === "published" && (
+        {!loading && !fetchError && notices.length === 0 && (
+          <div className="state-message">
+            <span className="state-code mono">00 / EMPTY</span>
+            <h3>NO ANNOUNCEMENTS <em>YET.</em></h3>
+            <p>Stay tuned for updates from PARADIGM.</p>
+          </div>
+        )}
+        {!loading && !fetchError && notices.length > 0 && (
           <div className="notice-preview">
-            <div className="notice-row">
-              <div className="notice-pin mono">PINNED</div>
-              <div className="notice-meta mono">DATE FROM API / IMPORTANT</div>
-              <h3>ANNOUNCEMENT TITLE FROM EXTERNAL SOURCE</h3>
-              <p>Short notice description will be supplied by the connected announcements API.</p>
-              <div className="notice-actions mono">
-                <span>
-                  READ MORE <Arrow />
-                </span>
-                <span>
-                  DOWNLOAD PDF <Arrow diagonal />
-                </span>
+            {notices.map((n) => (
+              <div className="notice-row" key={n.id}>
+                <div className="notice-meta mono">
+                  {new Date(n.posted_at).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })} / {n.tag.toUpperCase()}
+                </div>
+                <h3>{n.title}</h3>
+                <p>{n.body}</p>
               </div>
-            </div>
+            ))}
             <div className="notice-categories mono">
-              <span>IMPORTANT</span>
-              <span>REGISTRATION</span>
-              <span>ELIGIBILITY</span>
-              <span>SCHEDULE</span>
-              <span>RESULTS</span>
+              <span>PARADIGM 2026</span><span>REGISTRATION</span><span>SCHEDULE</span>
             </div>
           </div>
         )}
@@ -425,6 +412,7 @@ export default function App() {
   const root = useRef<HTMLDivElement>(null);
   const heroProgress = useRef({ value: 0 });
   const networkProgress = useRef({ value: 0 });
+  const [regOpen, setRegOpen] = useState(false);
   useCinematicMotion(root, heroProgress, networkProgress);
 
   return (
@@ -616,6 +604,7 @@ export default function App() {
           <a href="#top">BACK TO TOP ↑</a>
         </div>
       </footer>
+      <RegistrationModal isOpen={regOpen} onClose={() => setRegOpen(false)} />
     </div>
   );
 }

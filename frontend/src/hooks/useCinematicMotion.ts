@@ -51,8 +51,8 @@ export function useCinematicMotion(
           scrollTrigger: {
             trigger: ".hero",
             start: "top top",
-            end: "+=145%",
-            scrub: 1.1,
+            end: "+=90%",
+            scrub: 0.6,
             pin: true,
             anticipatePin: 1,
           },
@@ -76,8 +76,8 @@ export function useCinematicMotion(
           scrollTrigger: {
             trigger: ".manifesto",
             start: "top top",
-            end: "+=340%",
-            scrub: 0.8,
+            end: "+=220%",
+            scrub: 0.5,
             pin: true,
             anticipatePin: 1,
           },
@@ -155,9 +155,9 @@ export function useCinematicMotion(
         });
         setActiveCard(0);
 
-        const cardStepDuration = 1.4;
-        const firstTransitionAt = 0.45;
-        const handoffOffset = 0.42;
+        const cardStepDuration = 1.05;
+        const firstTransitionAt = 0.38;
+        const handoffOffset = 0.34;
         const handoffTimes = participantCards
           .slice(0, -1)
           .map((_, index) => index * cardStepDuration + firstTransitionAt + handoffOffset);
@@ -166,8 +166,8 @@ export function useCinematicMotion(
           scrollTrigger: {
             trigger: ".participation",
             start: "top top",
-            end: () => `+=${window.innerHeight * (compact ? 4.4 : 5.2)}`,
-            scrub: compact ? 0.45 : 0.7,
+            end: () => `+=${window.innerHeight * (compact ? 3.2 : 3.6)}`,
+            scrub: compact ? 0.3 : 0.45,
             pin: true,
             anticipatePin: 1,
             invalidateOnRefresh: true,
@@ -197,13 +197,13 @@ export function useCinematicMotion(
                 rotateZ: compact ? -0.3 : index % 2 === 0 ? -1.2 : 1.2,
                 opacity: 0,
                 ease: "power2.inOut",
-                duration: 0.82,
+                duration: 0.68,
               },
               position,
             )
             .to(
               card.querySelector(".panel-art"),
-              { yPercent: -22, scale: 0.88, ease: "power2.inOut", duration: 0.72 },
+              { yPercent: -18, scale: 0.9, ease: "power2.inOut", duration: 0.6 },
               position,
             )
             .to(
@@ -214,15 +214,15 @@ export function useCinematicMotion(
                 rotateX: 0,
                 rotateZ: 0,
                 ease: "power3.out",
-                duration: 0.9,
+                duration: 0.75,
               },
-              position + 0.08,
+              position + 0.06,
             )
             .fromTo(
               incoming.querySelector(".panel-number"),
               { xPercent: compact ? 5 : 12, opacity: 0.35 },
-              { xPercent: 0, opacity: 1, ease: "power2.out", duration: 0.65 },
-              position + 0.2,
+              { xPercent: 0, opacity: 1, ease: "power2.out", duration: 0.55 },
+              position + 0.16,
             );
         });
         stackTimeline.to({}, { duration: 0.7 });
@@ -249,7 +249,7 @@ export function useCinematicMotion(
       gsap.to(networkProgress.current, {
         value: 1,
         ease: "none",
-        scrollTrigger: { trigger: ".theme", start: "top bottom", end: "bottom top", scrub: 0.7 },
+        scrollTrigger: { trigger: ".theme", start: "top bottom", end: "bottom top", scrub: 0.5 },
       });
       gsap.fromTo(
         ".network-canvas-shell",
@@ -258,7 +258,7 @@ export function useCinematicMotion(
           clipPath: "circle(72% at 50% 50%)",
           scale: 1,
           ease: "none",
-          scrollTrigger: { trigger: ".theme", start: "top 72%", end: "center 48%", scrub: 0.7 },
+          scrollTrigger: { trigger: ".theme", start: "top 72%", end: "center 48%", scrub: 0.5 },
         },
       );
       gsap.from(".theme-copy > *", {

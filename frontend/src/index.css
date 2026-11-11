@@ -2530,3 +2530,137 @@ footer {
     display: none;
   }
 }
+
+/* ============================================================
+   PARADIGM — UI depth & micro-interaction polish
+   (adds ambient light, richer hover states, and subtle motion
+   without changing the existing layout or design tokens)
+   ============================================================ */
+
+/* Ambient light pools behind the hero sculpture */
+.hero::before {
+  background:
+    radial-gradient(38rem 30rem at 78% 22%, rgba(91, 140, 255, 0.16), transparent 65%),
+    radial-gradient(30rem 26rem at 30% 78%, rgba(198, 255, 77, 0.08), transparent 60%);
+  content: "";
+  inset: 0;
+  opacity: 0.9;
+  pointer-events: none;
+  position: absolute;
+  z-index: 0;
+  animation: heroAmbient 9s ease-in-out infinite alternate;
+}
+
+@keyframes heroAmbient {
+  from {
+    opacity: 0.6;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+/* Eyebrow divider line that draws itself in on load */
+.eyebrow::after {
+  background: linear-gradient(90deg, var(--lime), transparent);
+  content: "";
+  display: block;
+  height: 1px;
+  margin-top: 0.9rem;
+  transform-origin: left;
+  animation: drawLine 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.6s both;
+}
+
+@keyframes drawLine {
+  from {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+/* Buttons: tactile lift + glow */
+.button,
+.nav-cta,
+.register-button,
+.mobile-register {
+  position: relative;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+  will-change: transform;
+}
+.button-light:hover,
+.button-lime:hover,
+.register-button:hover {
+  box-shadow: 0 10px 26px -8px rgba(198, 255, 77, 0.4);
+}
+.nav-cta:hover {
+  box-shadow: 0 8px 22px -8px rgba(198, 255, 77, 0.45);
+}
+
+/* Program rows: arrow slides out on hover */
+.program-row .program-arrow {
+  display: inline-block;
+  transition: transform 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.program-row:hover .program-arrow {
+  transform: translate(0.25rem, -0.25rem);
+}
+
+/* Participant cards: active card gets a subtle inner vignette */
+.participant-stack .participant-panel.is-active::after {
+  background: linear-gradient(180deg, transparent 55%, rgba(8, 11, 15, 0.35));
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 1;
+}
+
+/* Section labels: accent chip that brightens on hover */
+.section-label span:first-child {
+  transition: color 0.25s, text-shadow 0.25s;
+}
+.section-label:hover span:first-child {
+  color: var(--lime);
+  text-shadow: 0 0 14px rgba(198, 255, 77, 0.6);
+}
+
+/* Notice rows: subtle lift + left accent line */
+.notice-row {
+  border-left: 2px solid transparent;
+  transition: border-color 0.3s, background-color 0.3s;
+}
+.notice-row:hover {
+  background: rgba(8, 11, 15, 0.05);
+  border-left-color: #6f961b;
+}
+
+/* Footer hover states */
+.footer-links a {
+  transition: color 0.25s;
+}
+.footer-links a:hover {
+  color: var(--lime);
+}
+
+/* Registration: the big ring slowly rotates on scroll and glows */
+.registration-ring {
+  box-shadow: 0 0 0 rgba(8, 11, 15, 0.06);
+  transition: box-shadow 0.6s;
+}
+.registration:hover .registration-ring {
+  box-shadow: 0 0 5rem rgba(8, 11, 15, 0.14);
+}
+
+/* Respect reduced motion for the new decorative animations */
+@media (prefers-reduced-motion: reduce) {
+  .hero::before,
+  .eyebrow::after {
+    animation: none !important;
+  }
+}

@@ -33,18 +33,24 @@ react(),
       },
     },
     server: {
-      host: process.env.FIGMA_DEV_SERVER_HOST || '0.0.0.0',
-      port: parseInt(process.env.PORT || '8443'),
-      strictPort: true,
+      host: '0.0.0.0',
+      port: parseInt(process.env.PORT || '5175'),
+      strictPort: false,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:8005',
+          changeOrigin: true,
+        },
+      },
       watch: {
         ignored: [
           '**/.figma/**',
-],
+        ],
       },
     },
     preview: {
-      host: process.env.FIGMA_DEV_SERVER_HOST || '0.0.0.0',
-      port: parseInt(process.env.PORT || '8443'),
+      host: '0.0.0.0',
+      port: parseInt(process.env.PORT || '5175'),
     },
   }
 })
