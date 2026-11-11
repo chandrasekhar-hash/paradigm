@@ -1,6 +1,6 @@
-# figma-make-app
+# PARADIGM
 
-React + Vite + Tailwind CSS project running inside Figma Make.
+React + Vite + Tailwind CSS project for the PARADIGM innovation platform.
 
 ## Development Server
 
