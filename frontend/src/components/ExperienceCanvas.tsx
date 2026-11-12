@@ -51,7 +51,15 @@ class SceneBoundary extends Component<
   }
 }
 
-function Sculpture({ progress, reduced }: { progress: ProgressRef; reduced: boolean }) {
+function Sculpture({
+  progress,
+  reduced,
+  compact,
+}: {
+  progress: ProgressRef;
+  reduced: boolean;
+  compact: boolean;
+}) {
   const group = useRef<THREE.Group>(null);
   const inner = useRef<THREE.Group>(null);
 
@@ -59,6 +67,7 @@ function Sculpture({ progress, reduced }: { progress: ProgressRef; reduced: bool
     if (!group.current || !inner.current) return;
     if (reduced) return;
     const p = progress.current.value;
+
     group.current.rotation.y = THREE.MathUtils.damp(
       group.current.rotation.y,
       p * Math.PI * 1.35 + pointer.x * 0.18,
@@ -71,25 +80,33 @@ function Sculpture({ progress, reduced }: { progress: ProgressRef; reduced: bool
       3.2,
       delta,
     );
+
+    const initialX = compact ? 1.20 : 1.15;
+    const initialY = compact ? 0.15 : -0.1;
+    const shiftX = compact ? 0.05 : 1.9;
+    const shiftY = compact ? 0.45 : 0.65;
+    const baseScale = compact ? 0.82 : 1;
+    const scaleDec = compact ? 0.22 : 0.28;
+
     group.current.position.x = THREE.MathUtils.damp(
       group.current.position.x,
-      1.15 - p * 1.9,
+      initialX - p * shiftX,
       2.5,
       delta,
     );
     group.current.position.y = THREE.MathUtils.damp(
       group.current.position.y,
-      -0.1 + p * 0.65,
+      initialY + p * shiftY,
       2.5,
       delta,
     );
-    const scale = 1 - p * 0.28;
+    const scale = baseScale - p * scaleDec;
     group.current.scale.setScalar(THREE.MathUtils.damp(group.current.scale.x, scale, 2.5, delta));
     inner.current.rotation.z = clock.elapsedTime * 0.08;
   });
 
   return (
-    <group ref={group} position={[1.15, -0.1, 0]}>
+    <group ref={group} position={[compact ? 1.20 : 1.15, compact ? 0.15 : -0.1, 0]}>
       <group ref={inner} rotation={[0.2, -0.3, -0.35]}>
         <Float
           speed={reduced ? 0 : 1.1}
@@ -140,19 +157,20 @@ function HeroScene({
   useFrame(({ camera, pointer }, delta) => {
     if (reduced) return;
     const p = progress.current.value;
+    const targetZ = compact ? 7.6 : 7.2;
     camera.position.x = THREE.MathUtils.damp(
       camera.position.x,
-      p * 0.65 + pointer.x * 0.1,
+      (compact ? p * 0.12 : p * 0.65) + pointer.x * 0.1,
       2.2,
       delta,
     );
     camera.position.y = THREE.MathUtils.damp(
       camera.position.y,
-      p * 0.22 + pointer.y * 0.07,
+      (compact ? p * 0.15 : p * 0.22) + pointer.y * 0.07,
       2.2,
       delta,
     );
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, 7.2 - p * 1.05, 2.2, delta);
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, targetZ - p * 1.05, 2.2, delta);
     camera.lookAt(0, 0, 0);
   });
 
@@ -175,7 +193,7 @@ function HeroScene({
         <planeGeometry args={[16, 16]} />
         <shadowMaterial transparent opacity={0.3} />
       </mesh>
-      <Sculpture progress={progress} reduced={reduced} />
+      <Sculpture progress={progress} reduced={reduced} compact={compact} />
       <Sparkles
         count={compact ? 34 : 80}
         scale={[10, 7, 5]}
@@ -364,7 +382,7 @@ export function HeroCanvas({ progress }: { progress: ProgressRef }) {
     <SceneBoundary fallback={<Fallback kind="hero" />}>
       <Canvas
         className="experience-canvas"
-        camera={{ position: [0, 0, 7.2], fov: 42 }}
+        camera={{ position: [0, 0, compact ? 7.6 : 7.2], fov: compact ? 44 : 42 }}
         dpr={[1, 1.7]}
         frameloop={reduced ? "demand" : "always"}
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}

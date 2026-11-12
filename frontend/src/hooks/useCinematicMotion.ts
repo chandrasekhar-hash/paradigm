@@ -1,4 +1,4 @@
-import { useLayoutEffect, type MutableRefObject, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, type MutableRefObject, type RefObject } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -10,7 +10,16 @@ export function useCinematicMotion(
   root: RefObject<HTMLElement | null>,
   heroProgress: ProgressRef,
   networkProgress: ProgressRef,
+  introReady = true,
 ) {
+  const introTimelineRef = useRef<gsap.core.Timeline | null>(null);
+
+  useEffect(() => {
+    if (introReady && introTimelineRef.current && introTimelineRef.current.paused()) {
+      introTimelineRef.current.play();
+    }
+  }, [introReady]);
+
   useLayoutEffect(() => {
     if (!root.current) return;
     const interactionCleanups: Array<() => void> = [];
@@ -29,7 +38,10 @@ export function useCinematicMotion(
 
       const media = gsap.matchMedia();
 
-      const intro = gsap.timeline({ defaults: { ease: "power4.out" } });
+      const intro = gsap.timeline({
+        paused: !introReady,
+        defaults: { ease: "power4.out" },
+      });
       intro
         .from(".hero-brand-kinetic span", {
           yPercent: 120,
@@ -45,6 +57,8 @@ export function useCinematicMotion(
           { opacity: 0, duration: 0.8, stagger: 0.1 },
           1,
         );
+
+      introTimelineRef.current = intro;
 
       media.add("(min-width: 768px)", () => {
         const hero = gsap.timeline({
@@ -99,11 +113,71 @@ export function useCinematicMotion(
       });
 
       media.add("(max-width: 767px)", () => {
-        gsap.utils.toArray<HTMLElement>(".manifesto-lines p, .program-row").forEach((element) => {
-          gsap.from(element, {
-            y: 55,
+        const heroMobile = gsap.timeline({
+          scrollTrigger: {
+            trigger: ".hero",
+            start: "top top",
+            end: () => `+=${Math.round(window.innerHeight * 0.35)}`,
+            scrub: 0.45,
+            pin: true,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+          },
+        });
+
+        heroMobile
+          .to(heroProgress.current, { value: 1, ease: "none", duration: 1 }, 0)
+          .to(
+            ".hero-copy",
+            { yPercent: -22, scale: 0.92, opacity: 0.08, ease: "power2.in", duration: 0.75 },
+            0.05,
+          )
+          .to(
+            ".hero-brand-kinetic",
+            { scale: 1.35, opacity: 0, letterSpacing: "0.08em", duration: 0.7 },
+            0.05,
+          )
+          .to(".hero-grid", { scale: 1.2, opacity: 0.1, duration: 0.8 }, 0)
+          .to(
+            ".hero-transition-mask",
+            { clipPath: "inset(0% 0% 0%)", ease: "power2.inOut", duration: 0.35 },
+            0.65,
+          );
+
+        const statements = gsap.utils.toArray<HTMLElement>(".manifesto-lines p");
+        if (statements[0]) {
+          gsap.from(statements[0], {
+            y: 24,
             opacity: 0,
-            duration: 0.8,
+            duration: 0.6,
+            ease: "power2.out",
+            scrollTrigger: { trigger: ".manifesto", start: "top 92%", once: true },
+          });
+        }
+        statements.slice(1).forEach((element) => {
+          gsap.from(element, {
+            y: 30,
+            opacity: 0,
+            duration: 0.65,
+            ease: "power2.out",
+            scrollTrigger: { trigger: element, start: "top 90%", once: true },
+          });
+        });
+        if (document.querySelector(".manifesto-final")) {
+          gsap.from(".manifesto-final", {
+            y: 30,
+            opacity: 0,
+            duration: 0.7,
+            ease: "power2.out",
+            scrollTrigger: { trigger: ".manifesto-final", start: "top 92%", once: true },
+          });
+        }
+
+        gsap.utils.toArray<HTMLElement>(".program-row").forEach((element) => {
+          gsap.from(element, {
+            y: 40,
+            opacity: 0,
+            duration: 0.7,
             ease: "power3.out",
             scrollTrigger: { trigger: element, start: "top 88%", once: true },
           });
@@ -178,7 +252,7 @@ export function useCinematicMotion(
               ).length;
               setActiveCard(index);
               if (participantProgressFill) {
-                participantProgressFill.style.transform = `scaleY(${self.progress})`;
+                participantProgressFill.style.transform = `scaleX(${self.progress})`;
               }
             },
           },
@@ -252,13 +326,13 @@ export function useCinematicMotion(
         scrollTrigger: { trigger: ".theme", start: "top bottom", end: "bottom top", scrub: 0.5 },
       });
       gsap.fromTo(
-        ".network-canvas-shell",
-        { clipPath: "circle(12% at 50% 50%)", scale: 0.75 },
+        ".theme-video-shell",
+        { opacity: 0.2, y: 30 },
         {
-          clipPath: "circle(72% at 50% 50%)",
-          scale: 1,
+          opacity: 1,
+          y: 0,
           ease: "none",
-          scrollTrigger: { trigger: ".theme", start: "top 72%", end: "center 48%", scrub: 0.5 },
+          scrollTrigger: { trigger: ".theme", start: "top 75%", end: "center 50%", scrub: 0.5 },
         },
       );
       gsap.from(".theme-copy > *", {

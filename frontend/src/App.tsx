@@ -1,12 +1,18 @@
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from "react";
+import mapVideoUrl from "../../Map.mp4";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useCinematicMotion } from "./hooks/useCinematicMotion";
 import RegistrationModal from "./components/RegistrationModal";
+import { WelcomeOpening } from "./components/WelcomeOpening";
+
+import cardImg8to10 from "./assets/cards/8th-10th.png";
+import cardImg11to12 from "./assets/cards/class-11-12.png";
+import cardImgItiDiploma from "./assets/cards/iti-diploma.png";
+import cardImgUndergraduate from "./assets/cards/undergraduate.png";
+import cardImgPgPhd from "./assets/cards/pg-phd.png";
 
 const HeroCanvas = lazy(() =>
   import("./components/ExperienceCanvas").then((module) => ({ default: module.HeroCanvas })),
-);
-const NetworkCanvas = lazy(() =>
-  import("./components/ExperienceCanvas").then((module) => ({ default: module.NetworkCanvas })),
 );
 
 const Arrow = ({ diagonal = false }: { diagonal?: boolean }) => (
@@ -27,7 +33,7 @@ const navItems = [
   ["CONTACT", "contact"],
 ];
 
-function Navigation() {
+function Navigation({ onOpenRegister }: { onOpenRegister: () => void }) {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("top");
@@ -66,7 +72,7 @@ function Navigation() {
             </a>
           ))}
         </nav>
-        <button className="nav-cta" type="button" onClick={() => setRegOpen(true)}>
+        <button className="nav-cta" type="button" onClick={onOpenRegister}>
           REGISTER NOW <Arrow diagonal />
         </button>
         <button
@@ -91,7 +97,7 @@ function Navigation() {
             </a>
           ))}
         </nav>
-        <button className="button button-lime mobile-register" type="button" onClick={() => { setRegOpen(true); close(); }}>
+        <button className="button button-lime mobile-register" type="button" onClick={() => { onOpenRegister(); close(); }}>
           REGISTER FOR PARADIGM <Arrow />
         </button>
         <div className="mobile-location mono">BERHAMPUR / ODISHA / INDIA</div>
@@ -174,6 +180,7 @@ const participants = [
       "Government schools / Shishu Mandir & Odia-medium private schools / English-medium schools",
     tags: ["DISCOVERY", "IDEATION"],
     art: "rings",
+    image: cardImg8to10,
   },
   {
     number: "02",
@@ -183,6 +190,7 @@ const participants = [
       "Eligible participants may receive an admission discount. Exact conditions to be confirmed.",
     tags: ["PROBLEM SOLVING", "EXPOSURE"],
     art: "beam",
+    image: cardImg11to12,
   },
   {
     number: "03",
@@ -191,6 +199,7 @@ const participants = [
     detail: "Proposed team size: 2–4 members where applicable.",
     tags: ["HACKATHON", "STUDENT INNOVATION"],
     art: "grid",
+    image: cardImgItiDiploma,
   },
   {
     number: "04",
@@ -199,6 +208,7 @@ const participants = [
     detail: "Proposed team size: 2–4 members where applicable.",
     tags: ["HACKATHON", "STUDENT INNOVATION"],
     art: "sphere",
+    image: cardImgUndergraduate,
   },
   {
     number: "05",
@@ -207,29 +217,71 @@ const participants = [
     detail: "Proposed team size: 2–4 members where applicable.",
     tags: ["RESEARCH", "INVESTOR PITCH"],
     art: "wave",
+    image: cardImgPgPhd,
   },
 ];
 
 function ParticipantPanel({ item, index }: { item: (typeof participants)[number]; index: number }) {
+  const eligibilityList = item.detail.includes("/")
+    ? item.detail.split("/").map((s) => s.trim()).filter(Boolean)
+    : [item.detail];
+
   return (
     <article
       className="participant-panel"
       data-participant-index={index}
       style={{ zIndex: participants.length - index }}
     >
-      <div className="panel-top">
-        <span className="panel-number">{item.number}</span>
-        <span className="mono">PARTICIPANT GROUP</span>
+      {/* Primary visual artwork background layer */}
+      <div className="panel-media-layer" aria-hidden="true">
+        <img
+          src={item.image}
+          alt=""
+          loading="eager"
+          className="panel-media-image"
+        />
+        <div className="panel-media-overlay" />
       </div>
-      <div className={`panel-art art-${item.art}`} aria-hidden="true">
-        <i />
-        <i />
-        <i />
+
+      <div className="panel-grid-pattern" aria-hidden="true" />
+
+      {/* Oversized outlined number positioned as watermark behind content */}
+      <span className="panel-number" aria-hidden="true">
+        {item.number}
+      </span>
+
+      {/* Retained in DOM for GSAP timeline animation */}
+      <div className="panel-art" aria-hidden="true" />
+
+      <div className="panel-header">
+        <div className="panel-header-top">
+          <span className="panel-category-descriptor mono">
+            CATEGORY // ELIGIBILITY
+          </span>
+          <span className="panel-level-indicator mono">
+            LEVEL / {item.number}
+          </span>
+        </div>
+        <div className="panel-header-divider" aria-hidden="true" />
       </div>
+
       <div className="panel-content">
-        <h3>{item.title}</h3>
-        <p>{item.description}</p>
-        <small>{item.detail}</small>
+        <h3 className="panel-title">{item.title}</h3>
+        <p className="panel-description">{item.description}</p>
+
+        <div className="panel-eligibility-group">
+          <div className="eligibility-tags">
+            {eligibilityList.map((tagText, tIndex) => (
+              <span className="eligibility-tag mono" key={tIndex}>
+                <span className="tag-plus">+</span>
+                <span>{tagText}</span>
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="panel-footer">
         <div className="tag-row">
           {item.tags.map((tag) => (
             <span className="tag mono" key={tag}>
@@ -238,7 +290,10 @@ function ParticipantPanel({ item, index }: { item: (typeof participants)[number]
           ))}
         </div>
         <a href="#register" className="panel-link mono">
-          REGISTER INTEREST <Arrow diagonal />
+          <span>REGISTER INTEREST</span>
+          <span className="link-arrow">
+            <Arrow diagonal />
+          </span>
         </a>
       </div>
     </article>
@@ -408,17 +463,66 @@ function ExperienceChrome() {
   );
 }
 
+let welcomeHasRunSession = false;
+
 export default function App() {
   const root = useRef<HTMLDivElement>(null);
   const heroProgress = useRef({ value: 0 });
   const networkProgress = useRef({ value: 0 });
+  const mapVideoRef = useRef<HTMLVideoElement | null>(null);
   const [regOpen, setRegOpen] = useState(false);
-  useCinematicMotion(root, heroProgress, networkProgress);
+
+  const [showWelcome, setShowWelcome] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+    return !welcomeHasRunSession;
+  });
+
+  const [introReady, setIntroReady] = useState(() => {
+    if (typeof window === "undefined") return true;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return true;
+    return welcomeHasRunSession;
+  });
+
+  useCinematicMotion(root, heroProgress, networkProgress, introReady);
+
+  useEffect(() => {
+    if (showWelcome) {
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = "";
+      };
+    }
+  }, [showWelcome]);
+
+  useEffect(() => {
+    if (mapVideoRef.current) {
+      mapVideoRef.current.playbackRate = 0.75;
+    }
+  }, []);
+
+  const handleRevealHero = useCallback(() => {
+    setIntroReady(true);
+  }, []);
+
+  const handleWelcomeComplete = useCallback(() => {
+    welcomeHasRunSession = true;
+    setShowWelcome(false);
+    requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+    });
+  }, []);
 
   return (
     <div ref={root}>
+      {showWelcome && (
+        <WelcomeOpening
+          onRevealHero={handleRevealHero}
+          onComplete={handleWelcomeComplete}
+        />
+      )}
       <ExperienceChrome />
-      <Navigation />
+      <Navigation onOpenRegister={() => setRegOpen(true)} />
       <main>
         <Hero progress={heroProgress} />
 
@@ -469,20 +573,19 @@ export default function App() {
             </p>
           </div>
           <div className="participant-stack-stage">
+            <div className="participant-progress" aria-live="polite">
+              <div className="participant-progress-info">
+                <b className="participant-progress-current mono">01</b>
+                <strong className="participant-progress-name mono">CLASSES 8–10</strong>
+              </div>
+              <i className="participant-progress-bar" aria-hidden="true">
+                <b className="participant-progress-fill" />
+              </i>
+            </div>
             <div className="panel-scroll participant-stack">
               {participants.map((item, index) => (
                 <ParticipantPanel item={item} index={index} key={item.number} />
               ))}
-            </div>
-            <div className="participant-progress" aria-live="polite">
-              <span className="mono">
-                <b className="participant-progress-current">01</b> / 05
-              </span>
-              <strong className="participant-progress-name mono">CLASSES 8–10</strong>
-              <i aria-hidden="true">
-                <b className="participant-progress-fill" />
-              </i>
-              <small className="mono">ACTIVE CATEGORY</small>
             </div>
           </div>
           <div className="scroll-note mono">SCROLL TO ADVANCE — 05 GROUPS</div>
@@ -529,11 +632,25 @@ export default function App() {
               <span>03 / OUTCOMES</span>
             </div>
           </div>
-          <Suspense
-            fallback={<div className="network-scene-loading mono">CONSTRUCTING NETWORK / 3D</div>}
-          >
-            <NetworkCanvas progress={networkProgress} />
-          </Suspense>
+          <div className="theme-video-shell">
+            <video
+              ref={mapVideoRef}
+              className="theme-video"
+              src={mapVideoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              preload="auto"
+              onLoadedMetadata={(e) => {
+                e.currentTarget.playbackRate = 0.75;
+              }}
+              onPlay={(e) => {
+                e.currentTarget.playbackRate = 0.75;
+              }}
+              aria-label="Map animation of Berhampur, Odisha"
+            />
+          </div>
         </section>
 
         <section className="notices" id="notices">
@@ -564,7 +681,7 @@ export default function App() {
             <button
               className="register-button"
               type="button"
-              title="Registration destination to be connected"
+              onClick={() => setRegOpen(true)}
             >
               REGISTER FOR PARADIGM <Arrow />
             </button>

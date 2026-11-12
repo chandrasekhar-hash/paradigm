@@ -36,6 +36,9 @@ react(),
       host: '0.0.0.0',
       port: parseInt(process.env.PORT || '5175'),
       strictPort: false,
+      fs: {
+        allow: ['..'],
+      },
       proxy: {
         '/api': {
           target: 'http://localhost:8005',
