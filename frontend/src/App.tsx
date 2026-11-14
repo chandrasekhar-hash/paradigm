@@ -4,6 +4,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useCinematicMotion } from "./hooks/useCinematicMotion";
 import RegistrationModal from "./components/RegistrationModal";
 import { WelcomeOpening } from "./components/WelcomeOpening";
+import RegisterPage from "./pages/RegisterPage";
 
 import cardImg8to10 from "./assets/cards/8th-10th.png";
 import cardImg11to12 from "./assets/cards/class-11-12.png";
@@ -115,7 +116,13 @@ function SectionLabel({ index, children }: { index: string; children: React.Reac
   );
 }
 
-function Hero({ progress }: { progress: React.MutableRefObject<{ value: number }> }) {
+function Hero({
+  progress,
+  onNavigate,
+}: {
+  progress: React.MutableRefObject<{ value: number }>;
+  onNavigate?: (to: string) => void;
+}) {
   return (
     <section className="hero" id="top">
       <div className="hero-scene" aria-hidden="true">
@@ -153,7 +160,14 @@ function Hero({ progress }: { progress: React.MutableRefObject<{ value: number }
           <a className="button button-light" href="#manifesto">
             EXPLORE PARADIGM <Arrow />
           </a>
-          <a className="text-link" href="#register">
+          <a
+            className="text-link"
+            href="/register"
+            onClick={(e) => {
+              e.preventDefault();
+              onNavigate?.("/register");
+            }}
+          >
             REGISTER NOW <Arrow diagonal />
           </a>
         </div>
@@ -221,7 +235,15 @@ const participants = [
   },
 ];
 
-function ParticipantPanel({ item, index }: { item: (typeof participants)[number]; index: number }) {
+function ParticipantPanel({
+  item,
+  index,
+  onNavigate,
+}: {
+  item: (typeof participants)[number];
+  index: number;
+  onNavigate?: (to: string) => void;
+}) {
   const eligibilityList = item.detail.includes("/")
     ? item.detail.split("/").map((s) => s.trim()).filter(Boolean)
     : [item.detail];
@@ -289,7 +311,14 @@ function ParticipantPanel({ item, index }: { item: (typeof participants)[number]
             </span>
           ))}
         </div>
-        <a href="#register" className="panel-link mono">
+        <a
+          href="/register"
+          className="panel-link mono"
+          onClick={(e) => {
+            e.preventDefault();
+            onNavigate?.("/register");
+          }}
+        >
           <span>REGISTER INTEREST</span>
           <span className="link-arrow">
             <Arrow diagonal />
@@ -465,7 +494,7 @@ function ExperienceChrome() {
 
 let welcomeHasRunSession = false;
 
-export default function App() {
+function HomePage({ onNavigate }: { onNavigate: (to: string) => void }) {
   const root = useRef<HTMLDivElement>(null);
   const heroProgress = useRef({ value: 0 });
   const networkProgress = useRef({ value: 0 });
@@ -522,9 +551,9 @@ export default function App() {
         />
       )}
       <ExperienceChrome />
-      <Navigation onOpenRegister={() => setRegOpen(true)} />
+      <Navigation onOpenRegister={() => onNavigate("/register")} />
       <main>
-        <Hero progress={heroProgress} />
+        <Hero progress={heroProgress} onNavigate={onNavigate} />
 
         <section className="manifesto" id="manifesto">
           <div className="manifesto-stage">
@@ -584,7 +613,7 @@ export default function App() {
             </div>
             <div className="panel-scroll participant-stack">
               {participants.map((item, index) => (
-                <ParticipantPanel item={item} index={index} key={item.number} />
+                <ParticipantPanel item={item} index={index} key={item.number} onNavigate={onNavigate} />
               ))}
             </div>
           </div>
@@ -681,7 +710,7 @@ export default function App() {
             <button
               className="register-button"
               type="button"
-              onClick={() => setRegOpen(true)}
+              onClick={() => onNavigate("/register")}
             >
               REGISTER FOR PARADIGM <Arrow />
             </button>
@@ -724,4 +753,44 @@ export default function App() {
       <RegistrationModal isOpen={regOpen} onClose={() => setRegOpen(false)} />
     </div>
   );
+}
+
+export default function App() {
+  const [currentPath, setCurrentPath] = useState(() => {
+    if (typeof window === "undefined") return "/";
+    const path = window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/";
+    return path === "/register" ? "/register" : "/";
+  });
+
+  const navigate = useCallback((to: string) => {
+    const normalized = to.toLowerCase().replace(/\/+$/, "") || "/";
+    if (window.location.pathname !== normalized) {
+      window.history.pushState(null, "", normalized);
+    }
+    setCurrentPath(normalized === "/register" ? "/register" : "/");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.toLowerCase().replace(/\/+$/, "") || "/";
+      setCurrentPath(path === "/register" ? "/register" : "/");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (currentPath === "/register") {
+      document.title = "PARADIGM® 2026 — Registration Portal";
+    } else {
+      document.title = "PARADIGM — Think Beyond the Known";
+    }
+  }, [currentPath]);
+
+  if (currentPath === "/register") {
+    return <RegisterPage onReturnHome={() => navigate("/")} />;
+  }
+
+  return <HomePage onNavigate={navigate} />;
 }

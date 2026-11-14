@@ -1,0 +1,10 @@
+{
+  "description": "A guided registration experience for PARADIGM participants to share their education and interests, manage team details, and review their information before submitting.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
