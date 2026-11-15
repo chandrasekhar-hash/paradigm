@@ -16,6 +16,9 @@ if %ERRORLEVEL% neq 0 (
 
 cd /d "%~dp0"
 
+REM Configure long paths support for Windows
+git config core.longpaths true
+
 if not exist ".git" (
     echo [*] Initializing new Git repository...
     git init
@@ -25,7 +28,7 @@ if not exist ".git" (
 git remote get-url origin >nul 2>nul
 if %ERRORLEVEL% neq 0 (
     echo [!] No remote repository is configured.
-    set DEFAULT_URL=https://github.com/chandrasekhar-hash/paradigm.git
+    set DEFAULT_URL=https://github.com/sambitsabat515-ui/event-page.git
     set /p REPO_URL="Enter GitHub Repository URL (Press Enter for: '!DEFAULT_URL!'): "
     if "!REPO_URL!"=="" set REPO_URL=!DEFAULT_URL!
     git remote add origin !REPO_URL!
@@ -43,16 +46,22 @@ if %ERRORLEVEL% neq 0 (
     )
 )
 
-set /p COMMIT_MSG="Enter commit message (Press Enter for: 'Update PARADIGM Event Page Fullstack System'): "
-if "!COMMIT_MSG!"=="" set COMMIT_MSG=Update PARADIGM Event Page Fullstack System
-
 echo.
-echo [*] Staging all files...
+echo [*] Staging files (.gitignore excludes node_modules and builds)...
 git add .
 
-echo [*] Committing changes...
-git commit -m "!COMMIT_MSG!"
+REM Check if there are changes to commit
+git status --porcelain | findstr /r "." >nul 2>nul
+if %ERRORLEVEL% equ 0 (
+    set /p COMMIT_MSG="Enter commit message (Press Enter for: 'Update PARADIGM Event Page Fullstack System'): "
+    if "!COMMIT_MSG!"=="" set COMMIT_MSG=Update PARADIGM Event Page Fullstack System
+    echo [*] Committing changes...
+    git commit -m "!COMMIT_MSG!"
+) else (
+    echo [*] All local changes are already committed and ready to push.
+)
 
+echo.
 echo [*] Pushing to GitHub (main branch)...
 git push -u origin main
 
@@ -64,21 +73,25 @@ if %ERRORLEVEL% equ 0 (
 ) else (
     echo.
     echo [!] Push failed or remote contains commits you do not have locally.
-    echo [1] Force push (overwrite remote with local files)
-    echo [2] Pull and merge remote changes first (rebase)
-    echo [3] Cancel
+    echo.
+    echo Choose an option:
+    echo   [1] Force push (overwrite remote with local files)
+    echo   [2] Pull and merge remote changes first (rebase)
+    echo   [3] Cancel
+    echo.
     set /p CHOICE="Choose option (1/2/3): "
     if "!CHOICE!"=="1" (
         echo [*] Force pushing...
         git push -u origin main --force
     ) else if "!CHOICE!"=="2" (
         echo [*] Pulling with rebase...
-        git pull origin main --rebase
+        git pull origin main --rebase --allow-unrelated-histories
         echo [*] Pushing...
         git push -u origin main
+    ) else (
+        echo [*] Cancelled.
     )
 )
 
 echo.
 pause
-
